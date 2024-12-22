@@ -1,0 +1,1 @@
+This project demonstrates the implementation of a WAV file compression algorithm using Java. By reducing the file size of uncompressed WAV audio files, the program helps optimize storage and transfer without significantly affecting the audio quality.
