@@ -1,101 +1,103 @@
 package q1;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
+
 public class compression extends JFrame implements ActionListener {
 	int count = 0;
 	JFrame frame;
-	JMenuBar mb;  
-	JButton file, exit;
-	JMenuItem open,Exit_menu;    
-	JLabel input_file;
-	JLabel output_file;
-	JLabel compression;
-	compression(){   
-		frame = new JFrame();
-	open=new JMenuItem("Open File");  
-	open.addActionListener(this);     
-	Exit_menu = new JMenuItem("Exit Menu");
-	Exit_menu.addActionListener(new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			frame.dispose();
-		}
-	});
-	file=new JButton("File"); 
-	file.setForeground(Color.white);
-	exit=new JButton("Exit");
-	exit.setForeground(Color.white);
-	file.add(open);             
-	exit.add(Exit_menu);
-	mb=new JMenuBar();    
-	mb.add(file);       
-	mb.add(exit);
-	mb.setBackground(Color.black);
-	input_file=new JLabel("File to compressed : ");  
-	input_file.setFont(new Font("Arial", Font.BOLD, 15));
-	output_file=new JLabel("File to compressed : "); 
-	output_file.setFont(new Font("Arial", Font.BOLD, 15));
-	compression = new JLabel("Compression ratio : ");
-	compression.setFont(new Font("Arial", Font.BOLD, 15));
-    JPanel p = new JPanel();
-	frame.add(mb);    
-	frame.add(input_file);
-	frame.add(output_file);
-	frame.add(compression);
-	frame.setLayout(new GridLayout(4,0));
-	frame.pack();
-	}
-	
-	public static void main(String[] args) {
-	    compression om=new compression();    
-        om.frame.setSize(600,200);    
-        om.frame.setVisible(true);    
-        om.frame.setDefaultCloseOperation(EXIT_ON_CLOSE); 
+	JMenuBar mb;
+	JMenu fileMenu;
+	JMenuItem open, exitMenu;
+	JLabel inputFileLabel;
+	JLabel outputFileLabel;
+	JLabel compressionLabel;
 
+	compression() {
+		frame = new JFrame("Compression Application");
+
+		// Menu Items
+		open = new JMenuItem("Open File");
+		open.addActionListener(this);
+
+		exitMenu = new JMenuItem("Exit");
+		exitMenu.addActionListener(e -> frame.dispose());
+
+		// Menu
+		fileMenu = new JMenu("File");
+		fileMenu.add(open);
+		fileMenu.add(exitMenu);
+
+		mb = new JMenuBar();
+		mb.add(fileMenu);
+		mb.setBackground(Color.black);
+
+		// Labels
+		inputFileLabel = new JLabel("File to be compressed: ");
+		inputFileLabel.setFont(new Font("Arial", Font.BOLD, 15));
+
+		outputFileLabel = new JLabel("Compressed file output: ");
+		outputFileLabel.setFont(new Font("Arial", Font.BOLD, 15));
+
+		compressionLabel = new JLabel("Compression ratio: ");
+		compressionLabel.setFont(new Font("Arial", Font.BOLD, 15));
+
+		// Frame layout
+		frame.setJMenuBar(mb);
+		frame.setLayout(new GridLayout(3, 1));
+		frame.add(inputFileLabel);
+		frame.add(outputFileLabel);
+		frame.add(compressionLabel);
+		frame.setSize(600, 200);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
+
+	public static void main(String[] args) {
+		new compression();
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		count += 1;
-		double comp_ratio = 0;
-		if(e.getSource()==open){    
-			String pfile = null;
-		    JFileChooser fc=new JFileChooser();    
-		    int i=fc.showOpenDialog(this);    
-		    if(i==JFileChooser.APPROVE_OPTION){    
-		        File f=fc.getSelectedFile();    
-		        if(!f.toString().contains(".wav")) {
-					JOptionPane.showMessageDialog(null, "You must enter a valid wav file to compress.", "compress", JOptionPane.ERROR_MESSAGE);
-		        }else {
-		        wav w = new wav();
-		        input_file.setText(input_file.getText()+f.toString());
-		        pfile = fc.getSelectedFile().getParent().toString();
-		        try {
-		        	double length = f.length();
-					File out =w.compress(f, pfile, count);
-					AudioInputStream in = AudioSystem.getAudioInputStream(f);
-					AudioInputStream output = AudioSystem.getAudioInputStream(out);
-					double af_length = out.length();
-					comp_ratio = af_length / length;
-					double compression_ratio = output.getFrameLength()*100/in.getFrameLength();
-					compression.setText("Compression ratio: " + String.format("%.4f", comp_ratio));
-					output_file.setText(output_file.getText()+out.toString());
-				} catch (InterruptedException | UnsupportedAudioFileException | IOException e1) {
-					e1.printStackTrace();
+		if (e.getSource() == open) {
+			JFileChooser fileChooser = new JFileChooser();
+			int result = fileChooser.showOpenDialog(this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				File selectedFile = fileChooser.getSelectedFile();
+				if (!selectedFile.getName().endsWith(".wav")) {
+					JOptionPane.showMessageDialog(null, "Please select a valid .wav file.", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
 				}
-		        } 
-		    }
-		    }    
-		}  
+
+				inputFileLabel.setText("File to be compressed: " + selectedFile.getAbsolutePath());
+				try {
+					wav wavCompressor = new wav();
+					String outputDir = selectedFile.getParent();
+					File compressedFile = wavCompressor.compress(selectedFile, outputDir, ++count);
+
+					AudioInputStream originalStream = AudioSystem.getAudioInputStream(selectedFile);
+					AudioInputStream compressedStream = AudioSystem.getAudioInputStream(compressedFile);
+
+					double originalLength = selectedFile.length();
+					double compressedLength = compressedFile.length();
+					double compressionRatio = compressedLength / originalLength;
+
+					outputFileLabel.setText("Compressed file output: " + compressedFile.getAbsolutePath());
+					compressionLabel.setText(String.format("Compression ratio: %.4f", compressionRatio));
+				} catch (Exception ex) {
+					ex.printStackTrace();
+					JOptionPane.showMessageDialog(null, "An error occurred during compression.", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		}
 	}
+}
