@@ -14,21 +14,18 @@ public class wav {
 		// Target Format for Compression
 		AudioFormat targetFormat = new AudioFormat(
 				sourceFormat.getEncoding(),
-				20000f, // Reduced Sample Rate
+				20000f,
 				sourceFormat.getSampleSizeInBits(),
 				sourceFormat.getChannels(),
 				sourceFormat.getFrameSize(),
 				20000f,
 				sourceFormat.isBigEndian()
 		);
-
 		if (!AudioSystem.isConversionSupported(targetFormat, sourceFormat)) {
 			throw new UnsupportedAudioFileException("Conversion to the target format is not supported.");
 		}
-
 		AudioInputStream compressedStream = AudioSystem.getAudioInputStream(targetFormat, inputAudioStream);
 
-		// Write the compressed audio stream to the output file
 		AudioSystem.write(compressedStream, AudioFileFormat.Type.WAVE, outputFile);
 
 		inputAudioStream.close();
